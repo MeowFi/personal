@@ -2,15 +2,14 @@ import { FadeInSection } from '../../hooks/useIntersectionObserver';
 import SkillTag from '../ui/SkillTag';
 
 const skills = [
-  { name: "Rust", icon: "https://raw.githubusercontent.com/devicons/devicon/master/icons/rust/rust-plain.svg", badge: "Systems" },
-  { name: "Solana", icon: "https://raw.githubusercontent.com/devicons/devicon/master/icons/solana/solana-original.svg", badge: "Web3" },
-  { name: "Next.js", icon: "https://raw.githubusercontent.com/devicons/devicon/master/icons/nextjs/nextjs-original.svg", badge: "Fullstack", invert: true },
-  { name: "Elixir", icon: "https://raw.githubusercontent.com/devicons/devicon/master/icons/elixir/elixir-original.svg", badge: "Concurrent" },
-  { name: "TypeScript", icon: "https://raw.githubusercontent.com/devicons/devicon/master/icons/typescript/typescript-plain.svg", tagLine: "Typed JS" },
-  { name: "GraphQL", icon: "https://raw.githubusercontent.com/devicons/devicon/master/icons/graphql/graphql-plain.svg", tagLine: "Query API" },
-  { name: "Node.js", icon: "https://raw.githubusercontent.com/devicons/devicon/master/icons/nodejs/nodejs-original.svg", tagLine: "Runtime" },
-  { name: "PostgreSQL", icon: "https://raw.githubusercontent.com/devicons/devicon/master/icons/postgresql/postgresql-plain.svg", tagLine: "Database" },
-  // Add more skills here if needed from the original HTML, ensure devicon links are correct or use local SVGs
+  { name: "Rust", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/rust/rust-plain.svg", badge: "Systems" },
+  { name: "Solana", icon: "https://cryptologos.cc/logos/solana-sol-logo.svg", badge: "Web3" },
+  { name: "Next.js", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nextjs/nextjs-original.svg", badge: "Fullstack", invert: true },
+  { name: "Elixir", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/elixir/elixir-original.svg", badge: "Concurrent" },
+  { name: "TypeScript", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-plain.svg", tagLine: "Typed JS" },
+  { name: "GraphQL", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/graphql/graphql-plain.svg", tagLine: "Query API" },
+  { name: "Node.js", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg", tagLine: "Runtime" },
+  { name: "PostgreSQL", icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-plain.svg", tagLine: "Database" },
 ];
 
 const StackSection = () => {
