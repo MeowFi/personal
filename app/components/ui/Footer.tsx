@@ -1,19 +1,19 @@
 'use client'
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 const Footer = () => {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [lastCommitTime, setLastCommitTime] = useState('');
   const [isCatAnimating, setIsCatAnimating] = useState(false);
 
-  const triggerCatAnimation = () => {
+  const triggerCatAnimation = useCallback(() => {
     if (isCatAnimating) return;
 
     setIsCatAnimating(true);
     setTimeout(() => {
         setIsCatAnimating(false);
     }, 500);
-  };
+  }, [isCatAnimating]);
 
   useEffect(() => {
     setCurrentYear(new Date().getFullYear());
@@ -26,7 +26,7 @@ const Footer = () => {
     return () => {
       document.removeEventListener('animateFooterCat', triggerCatAnimation);
     };
-  }, []);
+  }, [triggerCatAnimation]);
 
   return (
     <footer className="bg-slate-950 border-t border-slate-800/50 mt-24 sm:mt-32">

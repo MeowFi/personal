@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect, useRef, KeyboardEvent as ReactKeyboardEvent } from 'react';
+import React, { useState, useEffect, useRef, useCallback, KeyboardEvent as ReactKeyboardEvent } from 'react';
 
 declare const Tone: any;
 
@@ -56,9 +56,14 @@ const InteractiveConsole = () => {
       { time: '0:3:2', note: 'E5', dur: '8n' },
     ];
 
-    const sequence = new Tone.Part((time, value) => {
-      synth.triggerAttackRelease(value.note, value.dur, time);
-    }, melody);
+    type MelodyStep = { time: string; note: string; dur: string };
+
+    const sequence = new Tone.Part(
+      (time: number, value: MelodyStep) => {
+        synth.triggerAttackRelease(value.note, value.dur, time);
+      },
+      melody as MelodyStep[]
+    );
     
     sequence.loop = true;
     sequence.loopEnd = '1m';
@@ -67,7 +72,7 @@ const InteractiveConsole = () => {
     console.log("Theme song ready.");
   };
 
-  const playThemeSong = async () => {
+  const playThemeSong = useCallback(async () => {
     if (typeof Tone === 'undefined') {
       appendLine("Audio library not loaded yet.", 'error');
       return;
@@ -84,16 +89,16 @@ const InteractiveConsole = () => {
       audioRef.current.isPlaying = true;
       appendLine("Playing theme song... 🎶", 'info');
     }
-  };
+  }, [appendLine]);
 
-  const stopThemeSong = () => {
+  const stopThemeSong = useCallback(() => {
     if (audioRef.current.isReady && audioRef.current.isPlaying) {
       Tone.Transport.stop();
       audioRef.current.sequence.stop();
       audioRef.current.isPlaying = false;
       appendLine("Theme song stopped.", 'info');
     }
-  };
+  }, [appendLine]);
 
   useEffect(() => {
     const playHandler = () => playThemeSong();
@@ -108,7 +113,7 @@ const InteractiveConsole = () => {
         Tone.Transport.cancel();
       }
     };
-  }, []);
+  }, [playThemeSong, stopThemeSong]);
 
   const commands: Commands = {
     meow: {
@@ -179,7 +184,7 @@ const InteractiveConsole = () => {
     echo: { description: "Display a line of text.", usage: "[text to display]", action: (args) => { if (args && args.length > 0) { appendLine(args.join(" "), 'info'); } else { appendLine("", 'info'); } } },
   };
 
-  const handleCommandExecution = async (commandText: string) => {
+  const handleCommandExecution = useCallback(async (commandText: string) => {
     appendLine(commandText, 'command');
     const parts = commandText.trim().split(/\s+/);
     const mainCmd = parts[0].toLowerCase();
@@ -190,7 +195,7 @@ const InteractiveConsole = () => {
     } else {
       appendLine(`bash: command not found: ${mainCmd}. Try 'help'.`, 'error');
     }
-  };
+  }, [commands, appendLine]);
 
   const handleKeyDown = async (e: ReactKeyboardEvent<HTMLInputElement>) => {
     const inputElement = e.currentTarget;
@@ -298,7 +303,7 @@ const InteractiveConsole = () => {
     return () => {
         document.removeEventListener('runConsoleCommand', handleRunConsoleCommand);
     };
-  }, [history]);
+  }, [history, handleCommandExecution]);
 
   return (
     <div
