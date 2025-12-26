@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect, useRef, KeyboardEvent as ReactKeyboardEvent, FormEvent } from 'react';
+import React, { useState, useEffect, useRef, KeyboardEvent as ReactKeyboardEvent } from 'react';
 
 declare const Tone: any;
 
@@ -7,16 +7,14 @@ interface CommandDefinition {
   description: string;
   usage?: string;
   action: (args?: string[]) => void | Promise<void>;
-  isAICommand?: boolean;
 }
 interface Commands {
   [key: string]: CommandDefinition;
 }
 interface OutputLine {
   id: string;
-  type: 'command' | 'info' | 'error' | 'ai-loading' | 'ai-response';
+  type: 'command' | 'info' | 'error';
   content: string;
-  isLoading?: boolean;
 }
 
 const InteractiveConsole = () => {
@@ -36,13 +34,9 @@ const InteractiveConsole = () => {
 
   const generateId = () => `line-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-  const appendLine = (content: string, type: OutputLine['type'], isLoading = false) => {
-    setOutput(prev => [...prev, { id: generateId(), type, content, isLoading }]);
+  const appendLine = (content: string, type: OutputLine['type']) => {
+    setOutput(prev => [...prev, { id: generateId(), type, content }]);
   };
-
-  const removeLine = (id: string) => {
-    setOutput(prev => prev.filter(line => line.id !== id));
-  }
 
   const setupAudio = () => {
     if (typeof Tone === 'undefined' || audioRef.current.isReady) return;
@@ -116,41 +110,6 @@ const InteractiveConsole = () => {
     };
   }, []);
 
-  async function callGeminiViaAPIRoute(promptText: string, commandArgs: string[], loadingMessage = "Thinking...") {
-    const loadingLineId = generateId();
-    appendLine(loadingMessage, 'ai-loading', true);
-    const chatHistoryForAPI = [{ role: "user", parts: [{ text: promptText }] }];
-    try {
-      const response = await fetch('/api/gemini', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: promptText, history: chatHistoryForAPI, commandArgs: commandArgs })
-      });
-
-      removeLine(loadingLineId);
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("API Route Error:", errorData);
-        appendLine(`Error: ${errorData.error || response.statusText}`, 'error');
-        return;
-      }
-      const result = await response.json();
-      if (result.text) {
-        appendLine(result.text.replace(/\n/g, '<br>'), 'ai-response');
-      } else if (result.error) {
-        appendLine(`Error from AI: ${result.error}`, 'error');
-      } else {
-        appendLine("Sorry, I couldn't get a valid response from the AI at the moment.", 'error');
-        console.warn("Unexpected API route response:", result);
-      }
-    } catch (error: any) {
-      removeLine(loadingLineId);
-      console.error("Error calling /api/gemini:", error);
-      appendLine("An error occurred while contacting the AI. Please check the browser console.", 'error');
-    }
-  }
-
   const commands: Commands = {
     meow: {
       description: "Get a greeting from the cat and trigger an animation.",
@@ -204,9 +163,8 @@ const InteractiveConsole = () => {
         description: "Show this help message.",
         action: () => {
           let helpText = "Available commands:\n";
-          Object.entries(commands).forEach(([name, { description, usage, isAICommand }]) => {
-            const prefix = isAICommand ? '✨ ' : '  ';
-            helpText += `${prefix}${name.padEnd(18, ' ')} - ${description}${usage ? ` (Usage: ${name} ${usage})` : ''}\n`;
+          Object.entries(commands).forEach(([name, { description, usage }]) => {
+            helpText += `${name.padEnd(18, ' ')} - ${description}${usage ? ` (Usage: ${name} ${usage})` : ''}\n`;
           });
           appendLine(helpText.trim().replace(/\n/g, '<br>'), 'info');
         }
@@ -217,9 +175,6 @@ const InteractiveConsole = () => {
     },
     clear: { description: "Clear the console output.", action: () => setOutput([]) },
     whoami: { description: "Display user info.", action: () => appendLine("You're interacting with MeowFi's digital playground! I'm a backend dev exploring Solana.", 'info') },
-    explain: { description: "AI explains a technology.", usage: "[technology_name]", isAICommand: true, action: async (args) => { if (!args || args.length === 0) { appendLine("Usage: explain [technology_name]", 'error'); return; } const techName = args.join(" "); const prompt = `Explain the technology "${techName}" for a web developer. Keep it concise (1-2 paragraphs), covering its main purpose and key use cases. Format with Markdown.`; await callGeminiViaAPIRoute(prompt, args, `Explaining ${techName}...`); } },
-    ask: { description: "Ask AI a general question.", usage: "\"[your question]\"", isAICommand: true, action: async (args) => { if (!args || args.length === 0) { appendLine("Usage: ask \"[your question]\"", 'error'); return; } let question = args.join(" "); if (question.startsWith('"') && question.endsWith('"')) { question = question.slice(1, -1); } const prompt = `Answer the following question. Format with Markdown if appropriate: "${question}"`; await callGeminiViaAPIRoute(prompt, args, `Asking AI about "${question}"...`); } },
-    project_idea: { description: "AI suggests a project idea.", usage: "[technology/keywords]", isAICommand: true, action: async (args) => { if (!args || args.length === 0) { appendLine("Usage: project_idea [technology/keywords]", 'error'); return; } const tech = args.join(" "); const prompt = `Suggest a small, interesting project idea for a developer learning or using "${tech}". Provide a brief concept.`; await callGeminiViaAPIRoute(prompt, args, `Brainstorming project ideas for ${tech}...`); } },
     theme: { description: "Change site accent theme.", usage: "set [default|matrix|purple]", action: (args) => { if (args && args[0] === 'set' && args[1]) { const themeName = args[1].toLowerCase(); const root = document.documentElement; let consolePromptColor = '#60a5fa'; if (themeName === 'matrix') { root.style.setProperty('--accent-color', '#34d399'); root.style.setProperty('--accent-color-darker', '#059669'); root.style.setProperty('--accent-color-lighter', '#6ee7b7'); root.style.setProperty('--console-bg', '#0A0A0A'); root.style.setProperty('--console-text', '#00FF00'); consolePromptColor = '#33FF33'; } else if (themeName === 'purple') { root.style.setProperty('--accent-color', '#a855f7'); root.style.setProperty('--accent-color-darker', '#7e22ce'); root.style.setProperty('--accent-color-lighter', '#c084fc'); root.style.setProperty('--console-bg', '#1e1b2e'); root.style.setProperty('--console-text', '#d8b4fe'); consolePromptColor = '#e9d5ff'; } else { root.style.setProperty('--accent-color', '#3b82f6'); root.style.setProperty('--accent-color-darker', '#2563eb'); root.style.setProperty('--accent-color-lighter', '#60a5fa'); root.style.setProperty('--console-bg', '#000000'); root.style.setProperty('--console-text', '#93c5fd'); } root.style.setProperty('--console-prompt', consolePromptColor); appendLine(`Theme set to: ${themeName}`, 'info'); } else { appendLine("Usage: theme set [default|matrix|purple]", 'error'); } } },
     echo: { description: "Display a line of text.", usage: "[text to display]", action: (args) => { if (args && args.length > 0) { appendLine(args.join(" "), 'info'); } else { appendLine("", 'info'); } } },
   };
@@ -356,8 +311,7 @@ const InteractiveConsole = () => {
           <div key={line.id}>
             {line.type === 'command' && ( <span className="text-slate-500"><span className="text-[var(--console-prompt)]">meowfi@luna:~$ </span>{line.content}</span> )}
             {line.type === 'error' && <span className="text-red-400">Error: {line.content}</span>}
-            {line.type === 'ai-loading' && line.isLoading && ( <span className="text-purple-400">✨ {line.content}<span className="ai-loading-animation inline-block ml-1"><span>.</span><span>.</span><span>.</span><span>.</span></span></span> )}
-            {(line.type === 'info' || line.type === 'ai-response') && ( <span dangerouslySetInnerHTML={{ __html: line.content }} /> )}
+            {(line.type === 'info') && ( <span dangerouslySetInnerHTML={{ __html: line.content }} /> )}
           </div>
         ))}
       </div>

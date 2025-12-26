@@ -12,9 +12,6 @@ const InteractiveSection = () => {
           Want to see something cool? Try typing a command in the console below!
         </p>
         <InteractiveConsole />
-        <p className="text-xs text-slate-500 mt-3 text-center">
-          Hint: AI commands like &apos;explain&apos;, &apos;ask&apos;, &apos;project_idea&apos; use Gemini!
-        </p>
       </div>
     </FadeInSection>
   );

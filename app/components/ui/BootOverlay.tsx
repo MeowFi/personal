@@ -10,11 +10,10 @@ const bootLines = [
   "  [OK] Keyboard detected (for scritching commands)",
   "  [OK] Network interface eth0 (connected to CatNet)",
   "Checking file systems...",
-  "Mounting /home/meowfi...",
+  "Loading Cat Utilities...",
   "Starting system services:",
   "  [OK] PurrD (daemon for optimal purring)",
   "  [OK] Nyanimation Engine (for visual flair)",
-  "  [OK] Gemini AI Link active",
   "System Ready. Welcome to MeowFi's Lair!",
   ""
 ];
